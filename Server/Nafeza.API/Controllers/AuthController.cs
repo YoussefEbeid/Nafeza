@@ -16,6 +16,18 @@ namespace Nafeza.API.Controllers
             return Ok(result);
         }
 
+        // Add this inside AuthController class
+
+        [HttpPost("register")]
+        public async Task<ActionResult<int>> Register([FromBody] RegisterCommand command)
+        {
+            // 1. Send data to the handler we just wrote
+            var userId = await Mediator.Send(command);
+
+            // 2. Return success
+            return Ok(new { UserId = userId, Message = "Registration Successful" });
+        }
+
         // Endpoint to check if the USB e-Token is connected (Mock)
         [HttpGet("check-etoken")]
         public IActionResult CheckEToken()

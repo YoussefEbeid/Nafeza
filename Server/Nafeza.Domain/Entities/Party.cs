@@ -7,7 +7,6 @@ namespace Nafeza.Domain.Entities
     public class Party : BaseEntity
     {
         // Private setters enforce that you must use the Constructor or Methods to change data.
-        // This prevents invalid states.
         public string Name { get; private set; }
         public string? TaxId { get; private set; } // Required for Importers
         public string? CargoXId { get; private set; } // Required for Foreign Exporters
@@ -36,11 +35,19 @@ namespace Nafeza.Domain.Entities
             }
             else if (type == PartyType.ForeignExporter)
             {
-                // In real Nafeza, CargoX ID is crucial for Blockchain linking
                 if (string.IsNullOrWhiteSpace(identifier))
                     throw new NafezaDomainException("Foreign Exporters must have a CargoX ID.");
                 CargoXId = identifier;
             }
+        }
+
+        // --- NEW METHOD ADDED HERE ---
+        public void SetPassword(string password)
+        {
+            if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
+                throw new NafezaDomainException("Password must be at least 6 characters.");
+
+            this.Password = password;
         }
     }
 }

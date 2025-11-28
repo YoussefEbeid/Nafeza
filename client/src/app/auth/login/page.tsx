@@ -1,22 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
 import api from '@/lib/axios';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { AlertCircle, Lock, User, ArrowLeft } from 'lucide-react';
+import { AlertCircle, Lock, User, ArrowLeft, CheckCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const registered = searchParams.get('registered');
+  
   const login = useAuthStore((state) => state.login);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Form State
-  const [formData, setFormData] = useState({ identifier: '', password: '' });
+  const [formData, setFormData] = useState({ taxId: '', password: '' });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,23 +26,17 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // 1. Call your .NET API
       const response = await api.post('/auth/login', formData);
-      
-      // 2. Save Token to State
       login(response.data, response.data.token);
-
-      // 3. Go to Dashboard
       router.push('/dashboard');
     } catch (err: any) {
-      setError('Invalid identifier or password. Try: Tax ID, Email, or CargoX ID');
+      setError('Invalid Tax ID or Password.');
       setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-nafeza-500 flex items-center justify-center p-4 relative">
-        {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none"></div>
 
         <Card className="w-full max-w-md border-none shadow-2xl relative z-10">
@@ -53,6 +49,14 @@ export default function LoginPage() {
           </CardHeader>
 
           <CardContent>
+            {/* Success Message if coming from Register page */}
+            {registered && (
+              <div className="mb-4 bg-green-50 text-green-700 p-3 rounded-md text-sm flex items-center border border-green-200">
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Account created! Please log in.
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
                 <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm flex items-center">
@@ -62,19 +66,16 @@ export default function LoginPage() {
               )}
 
               <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700">Tax ID / Email / CargoX ID</label>
+                <label className="text-sm font-medium text-slate-700">Tax ID / Username</label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <Input 
-                    placeholder="Tax ID, Email, or CargoX ID" 
+                    placeholder="e.g. 100-200-300" 
                     className="pl-10" 
-                    value={formData.identifier}
-                    onChange={(e) => setFormData({...formData, identifier: e.target.value})}
+                    value={formData.taxId}
+                    onChange={(e) => setFormData({...formData, taxId: e.target.value})}
                   />
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  Importer: Tax ID or Email | Exporter: Email or CargoX ID
-                </p>
               </div>
 
               <div className="space-y-1">
@@ -96,8 +97,22 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
-              <button onClick={() => router.push('/')} className="text-sm text-slate-500 hover:text-nafeza-600 flex items-center justify-center mx-auto">
+            {/* --- NEW SECTION: CREATE ACCOUNT LINK --- */}
+            <div className="mt-6 text-center space-y-4">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-slate-200" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-slate-500">New to Nafeza?</span>
+                </div>
+              </div>
+
+              <Button variant="outline" className="w-full border-nafeza-200 text-nafeza-700" onClick={() => router.push('/auth/register')}>
+                Create an Account
+              </Button>
+
+              <button onClick={() => router.push('/')} className="text-sm text-slate-400 hover:text-nafeza-600 flex items-center justify-center mx-auto pt-2">
                 <ArrowLeft className="w-4 h-4 mr-1" /> Back to Homepage
               </button>
             </div>
