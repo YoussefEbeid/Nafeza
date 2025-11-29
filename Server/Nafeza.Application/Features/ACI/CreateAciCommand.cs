@@ -12,6 +12,7 @@ namespace Nafeza.Application.Features.ACI.Commands
     {
         public int ImporterId { get; set; }
         public int ExporterId { get; set; }
+        public int CurrentUserId { get; set; } // ID of the authenticated user creating the request
     }
 
     // 2. The Handler: The logic that executes when the command is sent
@@ -29,15 +30,21 @@ namespace Nafeza.Application.Features.ACI.Commands
         public async Task<int> Handle(CreateAciCommand request, CancellationToken cancellationToken)
         {
             // Business Rule: Validate Exporter on Blockchain first
+            // BUT: Skip validation if the exporter is the current user (they're already authenticated)
             var exporter = await _context.Parties.FindAsync(new object[] { request.ExporterId }, cancellationToken);
 
             if (exporter != null && !string.IsNullOrEmpty(exporter.CargoXId))
             {
-                bool isValid = await _cargoX.ValidateExporterIdAsync(exporter.CargoXId);
-                if (!isValid)
+                // Only validate if the exporter is NOT the current user
+                // If the current user is the exporter, they're already authenticated and in the DB
+                if (request.ExporterId != request.CurrentUserId)
                 {
-                    // In a real app, throw a specific Domain Exception here
-                    throw new Exception("Foreign Exporter is not verified on CargoX Blockchain.");
+                    bool isValid = await _cargoX.ValidateExporterIdAsync(exporter.CargoXId);
+                    if (!isValid)
+                    {
+                        // In a real app, throw a specific Domain Exception here
+                        throw new Exception("Foreign Exporter is not verified on CargoX Blockchain.");
+                    }
                 }
             }
 
