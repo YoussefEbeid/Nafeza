@@ -30,7 +30,6 @@ export default function DashboardPage() {
     { title: t('dashboard.walletBalance'), value: formatCurrency(45200), icon: CreditCard, color: 'text-green-600', bg: 'bg-green-50' },
   ];
 
-  // Get recent declarations (approved/submitted, sorted by date)
   const recentDeclarations = requests
     ?.filter(r => r.status.toLowerCase() === 'approved' || r.status.toLowerCase() === 'submitted')
     .sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime())
@@ -43,40 +42,38 @@ export default function DashboardPage() {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'approved':
-        return 'bg-green-100 text-green-800';
-      case 'submitted':
-        return 'bg-blue-100 text-blue-800';
-      case 'draft':
-        return 'bg-orange-100 text-orange-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'approved': return 'bg-green-100 text-green-800';
+      case 'submitted': return 'bg-blue-100 text-blue-800';
+      case 'draft': return 'bg-orange-100 text-orange-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-nafeza-700">{t('dashboard.overview')}</h1>
-          <p className="text-slate-500 mt-1">{language === 'ar' ? `مرحباً، ${user?.name || 'تاجر'}. إليك ما يحدث اليوم.` : `Hello, ${user?.name || 'Trader'}. Here is what's happening today.`}</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-nafeza-700">{t('dashboard.overview')}</h1>
+          <p className="text-slate-500 mt-1 text-sm md:text-base">
+            {language === 'ar' ? `مرحباً، ${user?.name || 'تاجر'}. إليك ما يحدث اليوم.` : `Hello, ${user?.name || 'Trader'}. Here is what's happening today.`}
+          </p>
         </div>
-        <Button onClick={() => router.push('/dashboard/aci/new')} className="shadow-lg bg-nafeza-accent hover:bg-yellow-600 text-white">
+        <Button onClick={() => router.push('/dashboard/aci/new')} className="w-full md:w-auto shadow-lg bg-nafeza-accent hover:bg-yellow-600 text-white">
           <Plus className={`h-4 w-4 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
           {t('dashboard.newACIRequest')}
         </Button>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         {stats.map((stat, index) => (
           <Card key={index} className="hover:shadow-lg transition-all duration-300 border-none shadow-md">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-500 mb-1">{stat.title}</p>
-                  <h3 className="text-3xl font-bold text-slate-800">{stat.value}</h3>
+                  <h3 className="text-2xl md:text-3xl font-bold text-slate-800">{stat.value}</h3>
                 </div>
                 <div className={`p-3 rounded-xl ${stat.bg}`}>
                   <stat.icon className={`h-6 w-6 ${stat.color}`} />
@@ -90,16 +87,16 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Recent Activity Table */}
+      {/* Recent Activity Table - RESPONSIVE FIX */}
       <Card className="border-none shadow-md">
         <CardHeader>
           <CardTitle>{t('dashboard.recentDeclarations')}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-6"> {/* Remove padding on mobile to max width */}
           {isLoading ? (
             <div className="text-center py-10 text-slate-500">Loading declarations...</div>
           ) : recentDeclarations.length === 0 ? (
-            <div className="text-center py-10 space-y-4">
+            <div className="text-center py-10 space-y-4 px-4">
               <FileText className="h-12 w-12 text-slate-300 mx-auto" />
               <p className="text-slate-500">No declarations found</p>
               <Button onClick={() => router.push('/dashboard/aci/new')} variant="outline">
@@ -107,31 +104,31 @@ export default function DashboardPage() {
               </Button>
             </div>
           ) : (
-            <div className="relative overflow-x-auto">
+            <div className="relative overflow-x-auto"> {/* IMPORTANT: Enables scroll on mobile */}
               <table className={`w-full text-sm text-slate-500 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
                 <thead className="text-xs text-slate-700 uppercase bg-slate-50">
                   <tr>
-                    <th className="px-6 py-3">ACID Number</th>
-                    <th className="px-6 py-3">Exporter</th>
-                    <th className="px-6 py-3">Date</th>
-                    <th className="px-6 py-3">Status</th>
-                    <th className="px-6 py-3">Action</th>
+                    <th className="px-4 md:px-6 py-3 whitespace-nowrap">ACID Number</th>
+                    <th className="px-4 md:px-6 py-3 whitespace-nowrap">Exporter</th>
+                    <th className="px-4 md:px-6 py-3 whitespace-nowrap">Date</th>
+                    <th className="px-4 md:px-6 py-3 whitespace-nowrap">Status</th>
+                    <th className="px-4 md:px-6 py-3 whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentDeclarations.map((declaration) => (
                     <tr key={declaration.id} className="bg-white border-b hover:bg-slate-50">
-                      <td className="px-6 py-4 font-mono text-nafeza-600 font-medium">
+                      <td className="px-4 md:px-6 py-4 font-mono text-nafeza-600 font-medium whitespace-nowrap">
                         {declaration.acidNumber}
                       </td>
-                      <td className="px-6 py-4">{declaration.exporterName}</td>
-                      <td className="px-6 py-4">{formatDate(declaration.requestDate)}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap">{declaration.exporterName}</td>
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap">{formatDate(declaration.requestDate)}</td>
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                         <span className={`${getStatusColor(declaration.status)} text-xs font-medium px-2.5 py-0.5 rounded`}>
                           {declaration.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                         <Button 
                           variant="ghost" 
                           size="sm"

@@ -9,7 +9,7 @@ import api from '@/lib/axios';
 import { Footer } from '@/components/shared/Footer';
 import { Header } from '@/components/shared/Header';
 import { useTranslation } from '@/lib/i18n';
-import { useLanguageStore } from '@/lib/store';
+import { useLanguageStore, useAuthStore } from '@/lib/store'; // Added useAuthStore
 
 interface Currency {
   code: string;
@@ -24,10 +24,22 @@ export default function HomePage() {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const { t } = useTranslation();
   const { language } = useLanguageStore();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated); // Check auth status
 
   useEffect(() => {
-    api.get('/currency/rates').then(res => setCurrencies(res.data.slice(0, 4)));
+    // Wrap in try/catch to prevent landing page crash if API is down
+    api.get('/currency/rates')
+      .then(res => setCurrencies(res.data.slice(0, 4)))
+      .catch(err => console.error("Currency fetch error", err));
   }, []);
+
+  const handleDashboardAccess = () => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    } else {
+      router.push('/auth/login');
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -40,8 +52,8 @@ export default function HomePage() {
         
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row min-h-[400px] sm:min-h-[500px]">
           
-          {/* Currency Widget */}
-          <div className="w-full lg:w-80 bg-nafeza-800/50 backdrop-blur-sm lg:border-r border-white/10 border-b lg:border-b-0 p-4 sm:p-6 flex flex-col z-10">
+          {/* Currency Widget - Hidden on very small screens if needed, or stacked */}
+          <div className="w-full lg:w-80 bg-nafeza-800/50 backdrop-blur-sm lg:border-r border-white/10 border-b lg:border-b-0 p-4 sm:p-6 flex flex-col z-10 order-2 lg:order-1">
             <h3 className="text-white font-semibold mb-3 sm:mb-4 flex items-center text-sm sm:text-base">
               <TrendingUp className={`w-4 h-4 ${language === 'ar' ? 'ml-2' : 'mr-2'} text-nafeza-accent`} /> {t('home.exchangeRates')}
             </h3>
@@ -72,7 +84,7 @@ export default function HomePage() {
           </div>
 
           {/* Hero Content */}
-          <div className="flex-1 p-6 sm:p-8 lg:p-12 flex flex-col justify-center text-white relative z-10">
+          <div className="flex-1 p-6 sm:p-8 lg:p-12 flex flex-col justify-center text-white relative z-10 order-1 lg:order-2">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 sm:mb-6 leading-tight">
               {t('home.advanceCargo')} <br className="hidden sm:block"/>
               <span className="text-nafeza-accent">{t('home.informationSystem')}</span>
@@ -81,7 +93,7 @@ export default function HomePage() {
               {t('home.heroDescription')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <Button size="lg" className="bg-nafeza-accent hover:bg-yellow-600 text-white border-none w-full sm:w-auto" onClick={() => router.push('/auth/login')}>
+              <Button size="lg" className="bg-nafeza-accent hover:bg-yellow-600 text-white border-none w-full sm:w-auto" onClick={handleDashboardAccess}>
                 {t('home.dashboardAccess')}
               </Button>
               <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 w-full sm:w-auto" onClick={() => router.push('/aci/validate')}>
@@ -92,7 +104,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. Digital Services (FIXED LINKS HERE) */}
+      {/* 3. Digital Services */}
       <section className="py-12 sm:py-16 lg:py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-center text-nafeza-700 mb-8 sm:mb-12">{t('home.digitalServices')}</h2>
@@ -102,13 +114,13 @@ export default function HomePage() {
               icon={FileText} 
               title={t('home.aciFiling')} 
               desc={t('home.aciFilingDesc')}
-              link="/auth/login" // Redirects to Login/Dashboard
+              link={isAuthenticated ? "/dashboard/aci" : "/auth/login"} // Smart link based on auth
             />
             <ServiceCard 
               icon={Search} 
               title={t('home.tariffSearch')} 
               desc={t('home.tariffSearchDesc')}
-              link="/tariff" // Redirects to the Tariff Page we just built
+              link={isAuthenticated ? "/dashboard/tariff" : "/tariff"} 
             />
             <ServiceCard 
               icon={ShieldCheck} 
@@ -126,15 +138,14 @@ export default function HomePage() {
   );
 }
 
-// Updated Component to accept 'link'
 function ServiceCard({ icon: Icon, title, desc, link }: { icon: any, title: string, desc: string, link: string }) {
-  const router = useRouter(); // Hook needed inside the component
+  const router = useRouter(); 
   const { t, language } = useTranslation();
   
   return (
     <Card 
       className="hover:shadow-lg transition-shadow border-none shadow-md cursor-pointer group" 
-      onClick={() => router.push(link)} // Add Click Handler here
+      onClick={() => router.push(link)}
     >
       <CardContent className="pt-6 text-center">
         <div className="w-12 h-12 bg-nafeza-50 text-nafeza-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-nafeza-600 group-hover:text-white transition-colors">

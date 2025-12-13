@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
 import api from '@/lib/axios';
@@ -18,10 +18,18 @@ export default function LoginPage() {
   const { t, language } = useTranslation();
   
   const login = useAuthStore((state) => state.login);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated); // Auth Check
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({ identifier: '', password: '' });
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/dashboard');
+    }
+  }, [isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +45,9 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  // If already authenticated, show nothing while redirecting
+  if (isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-nafeza-500 flex items-center justify-center p-4 relative">
