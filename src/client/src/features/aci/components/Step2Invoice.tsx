@@ -29,9 +29,9 @@ export function Step2Invoice({ requestId, onNext, onBack }: Props) {
         // Map the response to match the expected structure
         const mappedData: UploadResponse = {
           message: res.message || 'Success',
-          totalLines: res.totalLines || res.TotalLines || 0,
-          totalValueUSD: res.totalValueUSD || res.TotalValueUSD || 0,
-          items: (res.items || res.Items || []).map((item: any) => ({
+          totalLines: res.totalLines || res.totalLines || 0,
+          totalValueUSD: res.totalValueUSD || res.totalValueUSD || 0,
+          items: (res.items || res.items || []).map((item: any) => ({
             hsCode: item.hsCode || item.HSCode || '',
             description: item.description || item.Description || '',
             quantity: item.quantity || item.Quantity || 0,

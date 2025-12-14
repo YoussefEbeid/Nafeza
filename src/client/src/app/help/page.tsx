@@ -17,6 +17,7 @@ import { Footer } from '@/components/shared/Footer';
 import { useTranslation } from '@/lib/i18n';
 import { useLanguageStore } from '@/lib/store';
 import { translateApiContent } from '@/lib/apiContentTranslator';
+import { Header } from '@/components/shared/Header';
 
 interface FAQ {
   id: number;

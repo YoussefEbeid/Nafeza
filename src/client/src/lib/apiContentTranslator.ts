@@ -262,11 +262,11 @@ const translationMap: Record<string, string> = {
   'Recognition': 'اعتراف',
   'Excellence': 'التميز',
   'International': 'دولي',
-  'Security': 'الأمان',
+  'security': 'الأمان',
   'e-Token': 'التوكن الإلكتروني',
   'Conference': 'مؤتمر',
   'Future': 'المستقبل',
-  'Innovation': 'الابتكار',
+  'innovation': 'الابتكار',
   
   // Media article authors
   'Nafeza Editorial Team': 'فريق تحرير نافذة',
